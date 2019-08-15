@@ -50,6 +50,7 @@ public class PullRecyclerView extends RecyclerView {
     private boolean isCanRefresh = false;//下拉
     private long mFeedbackWaitTime = 500;//刷新成功或失败提示等待的时间
     private int mDragRate = DRAG_RATE;//摩擦力
+    private GridLayoutManager.SpanSizeLookup mSpanSizeLookup;
 
 //    public static void setPullSysConfig(PullSysConfig config) {
 //        mSysConfig = config;
@@ -96,6 +97,11 @@ public class PullRecyclerView extends RecyclerView {
             }
         }
         isCanLoadMore = loadMore;
+        return this;
+    }
+
+    public PullRecyclerView setSpanSizeLookup(GridLayoutManager.SpanSizeLookup spanSizeLookup) {
+        mSpanSizeLookup = spanSizeLookup;
         return this;
     }
 
@@ -519,8 +525,8 @@ public class PullRecyclerView extends RecyclerView {
     }
 
     private class PullToRefreshRecyclerViewAdapter extends Adapter<ViewHolder> {
-        private static final int TYPE_REFRESH_HEADER = 10000;//头部下拉刷新类型
-        private static final int TYPE_LOAD_MORE_FOOTER = 10001;//底部加载更多类型
+        private static final int TYPE_REFRESH_HEADER = Integer.MIN_VALUE;//头部下拉刷新类型
+        private static final int TYPE_LOAD_MORE_FOOTER = Integer.MAX_VALUE;//底部加载更多类型
         private Adapter adapter;
 
         private PullToRefreshRecyclerViewAdapter(Adapter adapter) {
@@ -573,17 +579,22 @@ public class PullRecyclerView extends RecyclerView {
             if (isLoadMoreFooter(position)) {
                 return TYPE_LOAD_MORE_FOOTER;
             }
-            int adjPosition = position - 1;
-            int adapterCount;
+//            int adjPosition = position - 1;
+//            int adapterCount;
             if (adapter != null) {
-                adapterCount = adapter.getItemCount();
-                if (adjPosition < adapterCount) {
-                    int type = adapter.getItemViewType(adjPosition);
-                    if (isReservedItemViewType(type)) {
-                        throw new IllegalStateException("PullToRefreshRecyclerView require itemViewType in adapter should be less than 10000 ");
-                    }
-                    return type;
+//                adapterCount = adapter.getItemCount();
+//                if (adjPosition < adapterCount) {
+//                    int type = adapter.getItemViewType(adjPosition);
+//                    if (isReservedItemViewType(type)) {
+//                        throw new IllegalStateException("PullToRefreshRecyclerView require itemViewType in adapter should be less than 10000 ");
+//                    }
+//                    return type;
+//                }
+                int type = adapter.getItemViewType(isExistRefreshView() ? position - 1 : position);
+                if (isReservedItemViewType(type)) {
+                    throw new IllegalStateException("PullToRefreshRecyclerView require itemViewType in adapter should be less than 10000 ");
                 }
+                return type;
             }
             return 0;
         }
@@ -647,7 +658,8 @@ public class PullRecyclerView extends RecyclerView {
                     @Override
                     public int getSpanSize(int position) {
                         return (isLoadMoreFooter(position) || isRefreshHeader(position))
-                                ? gridManager.getSpanCount() : 1;
+                                ? gridManager.getSpanCount() : mSpanSizeLookup != null
+                                ? mSpanSizeLookup.getSpanSize(isExistRefreshView() ? position - 1 : position) : 1;
                     }
                 });
             }
