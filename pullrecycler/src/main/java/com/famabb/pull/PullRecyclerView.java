@@ -262,7 +262,7 @@ public class PullRecyclerView extends RecyclerView {
                 }
                 break;
             case MotionEvent.ACTION_UP:
-                checkRefresh();
+                touchUp();
                 break;
         }
         return super.onTouchEvent(e);
@@ -271,29 +271,22 @@ public class PullRecyclerView extends RecyclerView {
     /**
      * 触摸事件结束后检查是否需要刷新
      */
-    private void checkRefresh() {
-        boolean isScrollBottom = isCanLoadMore() && isScrollBottom();
-        if (isScrollBottom) {
-            if (mMoreRefreshView.getVisibleHeight() <= 0) {
-                return;
-            }
+    private void touchUp() {
+        if (isExistLoadMoreView() && mMoreRefreshView.getVisibleHeight() > 0) {
             if (mMoreRefreshState == MORE_STATE_NORMAL) {
                 mMoreRefreshView.smoothScrollTo(0);
                 mMoreRefreshState = MORE_STATE_DONE;
             } else if (mMoreRefreshState == MORE_STATE_RELEASE_TO_REFRESH) {
                 setBottomRefreshState(MORE_STATE_REFRESHING);
             }
-        } else {
-            if (isExistRefreshView()) {
-                if (mHeadRefreshView.getVisibleHeight() <= 0) {
-                    return;
-                }
-                if (mHeadRefreshState == HEAD_STATE_NORMAL) {
-                    mHeadRefreshView.smoothScrollTo(0);
-                    mHeadRefreshState = HEAD_STATE_DONE;
-                } else if (mHeadRefreshState == HEAD_STATE_RELEASE_TO_REFRESH) {
-                    setHeadRefreshState(HEAD_STATE_REFRESHING);
-                }
+        }
+
+        if (isExistRefreshView() && mHeadRefreshView.getVisibleHeight() > 0) {
+            if (mHeadRefreshState == HEAD_STATE_NORMAL) {
+                mHeadRefreshView.smoothScrollTo(0);
+                mHeadRefreshState = HEAD_STATE_DONE;
+            } else if (mHeadRefreshState == HEAD_STATE_RELEASE_TO_REFRESH) {
+                setHeadRefreshState(HEAD_STATE_REFRESHING);
             }
         }
     }

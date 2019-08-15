@@ -27,7 +27,7 @@ public class SimpleRefreshMoreView extends AbRefreshMoreView {
 
     @Override
     protected int onCreateRefreshLimitHeight() {
-        return getScreenHeight() / 4;
+        return 100;
     }
 
     @Override
